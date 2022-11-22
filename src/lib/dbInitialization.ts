@@ -5,9 +5,10 @@ import { Blogs } from "../models/blog";
 import blogs from "../db/blogs.json";
 import columnPosts from "../db/columnPosts.json";
 
-const LOCAL_MONGO_URI = process.env.LOCAL_MONGO_URI as string;
-
-const MONGO_URI = process.env?.MONGODB_URI || LOCAL_MONGO_URI;
+const NODE_ENV = process.env.NODE_ENV;
+const LOCAL_MONGODB_URI = process.env.LOCAL_MONGODB_URI as string;
+const MONGODB_URI = process.env.MONGODB_URI as string;
+const MONGO_URI = NODE_ENV === "development" || NODE_ENV === "test" ? LOCAL_MONGODB_URI : MONGODB_URI;
 
 let cached = global.mongoose;
 
