@@ -251,7 +251,11 @@ export function useCommentVisible() {
 export function useLoading(falsedValue: boolean, onLoadShow: JSX.Element) {
     const [ countOfPeriod, setCountOfPeriod ] = useState(3);
 
-    let loading = `Loading${Array.from({ length: countOfPeriod }).map(() => ".")}`;
+    let loading = (
+        <p className="loading_text">
+            Loading{Array.from({ length: countOfPeriod }).map(() => ".")}
+        </p>
+    )
 
     useEffect(() => {
         let timeout = setTimeout(function setLoading() {

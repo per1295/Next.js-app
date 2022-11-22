@@ -6,7 +6,7 @@ const TheMainAboutUs = dynamic(() => import("../components/about us/TheMainAbout
 
 export default function AboutUs() {
     return (
-        <Suspense fallback={<div className="loading"/>}>
+        <Suspense fallback={<div className="preloader"/>}>
             <Head>
                 <title>About</title>
             </Head>

@@ -7,7 +7,7 @@ const TheMainThirdGroup = dynamic(() => import("../globalComponents/TheMainThird
 
 export default function Services() {
     return(
-        <Suspense fallback={<div className="loading"/>}>
+        <Suspense fallback={<div className="preloader"/>}>
             <Head>
                 <title>Services</title>
             </Head>

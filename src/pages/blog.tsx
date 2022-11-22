@@ -32,7 +32,7 @@ export default function Contact() {
 	}, [ isMobile ]);
 
 	return (
-		<Suspense fallback={<div className="loading"/>}>
+		<Suspense fallback={<div className="preloader"/>}>
 			<Head>
                 <title>Blog</title>
             </Head>

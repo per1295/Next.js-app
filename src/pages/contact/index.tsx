@@ -6,7 +6,7 @@ const TheMainContact = dynamic(() => import("../../components/contact/TheMainCon
 
 export default function Contact() {
     return(
-        <Suspense fallback={<div className="loading"/>}>
+        <Suspense fallback={<div className="preloader"/>}>
             <Head>
                 <title>Contact</title>
             </Head>

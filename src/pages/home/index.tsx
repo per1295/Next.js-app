@@ -6,7 +6,7 @@ const TheMain = dynamic(() => import("../../components/home/TheMain"));
 
 export default function Home() {
     return(
-        <Suspense fallback={<div className="loading"/>}>
+        <Suspense fallback={<div className="preloader"/>}>
             <Head>
                 <title>Home</title>
             </Head>
