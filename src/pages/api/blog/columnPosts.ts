@@ -1,5 +1,4 @@
 import { NextApiHandler } from "next";
-import { ColumnPost } from "../../../models/blog";
 import { createResponse } from "../../../lib/functions";
 import init from "../../../lib/init";
 
@@ -9,10 +8,13 @@ const handler: NextApiHandler = async (req, res) => {
 
         await init();
 
-        const columnPosts = await ColumnPost.find({}, { _id: 0 });
+        const connection = globalThis.connection;
+
+        const [ rows ] = await connection.execute<any[]>(`SELECT * from columnPosts`);
+
         res.json(createResponse({
             status: "success",
-            message: columnPosts
+            message: rows
         }));
     } catch (error) {
         const err = error as Error;

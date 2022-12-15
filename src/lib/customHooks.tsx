@@ -265,7 +265,7 @@ export function useLoading(falsedValue: boolean, onLoadShow: JSX.Element) {
             });
             if ( falsedValue ) clearTimeout(timeout);
             else timeout = setTimeout(setLoading, 100);
-        }, 100);
+        }, 250);
 
         return () => {
             clearTimeout(timeout);

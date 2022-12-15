@@ -1,8 +1,7 @@
 import { FunctionComponent } from "react";
-import type { Document } from "mongoose";
 import type { GetServerSideProps } from "next";
-import { Email } from "../../../models/home";
 import { getCookieString } from "../../../lib/functions";
+import type { ParsedUrlQuery } from "querystring";
 
 interface PageConfirmIdProps {
     email: Document | null;
@@ -10,11 +9,13 @@ interface PageConfirmIdProps {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     try {
-        let email = await Email.findOne({ id: context.params?.id });
+        const connection = globalThis.connection;
+        const { id } = context.params as ParsedUrlQuery;
+        const [ rows ] = await connection.query<any[]>(`SELECT * FROM emails WHERE id = ?`, [ id ]);
+        const email = rows[0];
 
         if ( email ) {
-            email.isVerified = true;
-            email = await email.save();
+            await connection.query(`UPDATE emails SET isVerified = TRUE WHERE id = ?`, [ id ]);
 
             context.res.setHeader("Set-Cookie", getCookieString("isVerified", true));
         }
@@ -32,7 +33,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 const ConfirmEmailPage: FunctionComponent<PageConfirmIdProps> = ({ email }) => {
     return(
         <h1>
-            { email ? "Your email has been successfully verified" : "This id does not exist" }
+            { email ? "Your email has been successfully verified" : "Email`s id does not exist" }
         </h1>
     )
 }

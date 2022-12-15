@@ -1,7 +1,6 @@
 import type { NextApiHandler } from "next";
 import { IEmailData } from "../../../types/home";
-import { createResponse, getCookieString } from "../../../lib/functions";
-import { Email } from "../../../models/home";
+import { createResponse, setCookies } from "../../../lib/functions";
 import init from "../../../lib/init";
 
 const handler: NextApiHandler = async (req, res) => {
@@ -10,9 +9,17 @@ const handler: NextApiHandler = async (req, res) => {
 
         await init();
 
+        const connection = globalThis.connection;
+        const transport = globalThis.transport;
+
         const { email } = req.body as Pick<IEmailData, "email">;
 
-        const emailDocument = await Email.findOne({ email });
+        const [ rows ] = await connection.execute<any[]>(
+            `SELECT * FROM emails WHERE email = ?`,
+            [ email ]
+        );
+
+        const emailDocument = rows[0];
         if ( emailDocument ) {
             const { isVerified } = emailDocument;
             return res
@@ -22,18 +29,21 @@ const handler: NextApiHandler = async (req, res) => {
                 }));
         }
 
-        const randomId = Math.floor(Math.random() * 1e6);
-        let newEmail = new Email({ id: randomId, email });
-        newEmail = await newEmail.save();
+        await connection.execute(`INSERT INTO emails (email) VALUES (?)`, [ email ]);
+
+        const [ newRows ] = await connection.execute<any[]>(`SELECT * FROM emails WHERE email = ?`, [ email ]);
+
+        let newEmail = newRows[0];
+        const { id, email: nEmail, isVerified } = newEmail;
 
         const reqURL = req.headers.referer as string;
         const url = new URL(reqURL);
 
-        let confirmURLAdress = `${url.protocol}://${url.host}/home/confirmEmail`;
+        let confirmURLAdress = `${url.protocol}//${url.host}/home/confirmEmail/${id}`;
 
         await transport.sendMail({
             from: process.env.APP_EMAIL,
-            to: newEmail.email,
+            to: nEmail,
             subject: "Confirm your email.",
             html: `
                 <h1>
@@ -45,11 +55,13 @@ const handler: NextApiHandler = async (req, res) => {
             `
         });
 
-        res
-        .setHeader("Set-Cookie", getCookieString("id", newEmail.id))
-        .setHeader("Set-Cookie", getCookieString("email", newEmail.email))
-        .setHeader("Set-Cookie", getCookieString("isVerified", newEmail.isVerified))
-        .json(createResponse({
+        setCookies(
+            res,
+            [ "idOfEmail", "email", "emailIsVerified" ],
+            [ id, nEmail, isVerified ]
+        );
+
+        res.json(createResponse({
             status: "success",
             message: "Follow the link sent to you to confirm your email"
         }));

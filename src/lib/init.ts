@@ -1,8 +1,7 @@
-import { dbConnect, createBaseCollections } from "./dbInitialization";
+import initDB from "./dbInitialization";
 import transportInit from "./transportInitialization";
 
 export default async function init() {
-    await dbConnect();
-    await createBaseCollections();
+    await initDB();
     transportInit();
 }

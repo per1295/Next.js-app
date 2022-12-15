@@ -3,12 +3,12 @@
 Frontend: Next.js  
 State management: Redux Toolkit     
 Backend: API Routes (Node JS)  
-Database: MongoDB (Mongoose)   
+Database: MySQL   
 Unit тесты: Jest, Supertest  
 
-## Использование MongoDB
+## Использование MySQL
 
-Установите на локальную машину MongoDB Community Server (https://www.mongodb.com/try/download/community)
+Установите локально MySQL (https://dev.mysql.com/downloads/installer/) и перед использованием создайте базу данных с именем react_app
 
 # Тестирование
 

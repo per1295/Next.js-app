@@ -9,13 +9,6 @@ export interface ISearchInputSchema {
     values: string[];
 }
 
-export interface IColumnPostSchema {
-    id: number;
-    title: string;
-    dateOfCreation: string;
-    img: string;
-}
-
 export interface IEmailDataComment {
     email: string;
     comment: string;

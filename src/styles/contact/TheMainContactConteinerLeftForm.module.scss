@@ -40,3 +40,13 @@
     font-weight: 700;
     text-transform: uppercase;
 }
+
+.messageActive {
+    display: block;
+}
+
+.messageStart {
+    transition: transform .25s ease-in, opacity .25s ease-in;
+    opacity: 1;
+    transform: translateX(0);
+}

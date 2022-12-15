@@ -23,7 +23,7 @@ const initPostData = Array.from({ length: 3 }).map(() => ({
     title: "",
     dateCreation: "",
     img: ""
-}));
+})) as PostData[];
 
 const MainBlogColumnItemPostsMainItem: FunctionComponent<MainBlogColumnItemPostsMainItemProps> = ({ category, ownCategory }) => {
     const [ columnPosts, setColumnPosts ] = useState<PostData[]>([]);

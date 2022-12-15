@@ -1,9 +1,7 @@
 import type { CookieOptions } from "cookiejs";
-import { ColumnPost, Blogs } from "../models/blog";
 import type { IBlog, IPutBlogsQuery } from "../types/blog";
 import { IResponse } from "../types/home";
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { Document } from "mongoose";
 import store from "../redux/store";
 import { setIsMobileTrue, setIsMobileFalse } from "../redux/slices/isMobile";
 import { setIsTabletTrue, setIsTabletFalse } from "../redux/slices/isTablet";
@@ -38,44 +36,45 @@ export function getCookieString(key: string, value: any, options?: CookieOptions
 }
 
 export async function getBlogs(req: NextApiRequest, res: NextApiResponse) {
+    const connection = globalThis.connection;
+
     let { lastId } = req.query;
 
-    let blogs: Document<unknown, any, IBlog>[];
+    let blogs: any[];
 
     if ( lastId ) {
-        blogs = await Blogs
-        .find({}, { _id: false })
-        .where("id")
-        .lt(+lastId)
-        .sort({
-            id: -1
-        })
-        .limit(3);
+        const [ rows ] = await connection.execute<any[]>(
+            `SELECT * from blogs WHERE id < ? ORDER BY id DESC LIMIT 3`,
+            [ lastId ]
+        );
 
-        if ( blogs.length === 0 ) {
+        if ( rows.length === 0 ) {
             return res.json(createResponse({
                 status: "success",
                 message: "No more blogs for now"
             }));
         }
+
+        blogs = rows;
     } else {
-        blogs = await Blogs
-        .find({}, { _id: false })
-        .sort({
-            id: -1
-        })
-        .limit(3);
+        const [ rows ] = await connection.execute<any[]>(
+            `SELECT * FROM blogs ORDER BY id DESC LIMIT 3`
+        );
+
+        blogs = rows;
     }
 
-    lastId = blogs.at(-1)?.get("id");
+    lastId = blogs.at(-1)?.id;
 
     res.json(createResponse({
         status: "success",
-        message: { blogs, lastId }
+        message: { blogs: transformBlogs(blogs), lastId }
     }));
 }
 
 export async function patchBlogs(req: NextApiRequest, res: NextApiResponse) {
+    const connection = globalThis.connection;
+
     let { id, typeUpdate } = req.query as unknown as IPutBlogsQuery;
 
     const {
@@ -85,9 +84,12 @@ export async function patchBlogs(req: NextApiRequest, res: NextApiResponse) {
         usersWhoLiked
     } = req.body as Pick<IBlog, "comments" | "countComments" | "countLikes" | "usersWhoLiked">;
 
-    const blog = await Blogs.findOne({ id: +id });
+    const [ rows ] = await connection.execute<any[]>(
+        `SELECT * FROM blogs WHERE id = ?`,
+        [ id ]
+    );
 
-    if ( !blog ) {
+    if ( rows.length === 0 ) {
         return res.status(404).json(createResponse({
             status: "fail",
             message: "Wrong idOfBlog"
@@ -96,18 +98,34 @@ export async function patchBlogs(req: NextApiRequest, res: NextApiResponse) {
 
     switch(typeUpdate) {
         case "comments":
-            blog.comments = comments;
-            blog.countComments = countComments;
-            await blog.save();
+            await connection.execute(
+                `
+                    UPDATE blogs
+                    SET
+                        commentsArray = ?,
+                        countComments = ?
+                    WHERE id = ?
+                `,
+                [ comments, countComments, id ]
+            );
+
             res.json(createResponse({
                 status: "success",
                 message: "Comments were saved"
             }));
             break;
         case "likes":
-            blog.countLikes = +countLikes;
-            blog.usersWhoLiked = usersWhoLiked;
-            await blog.save();
+            await connection.execute(
+                `
+                    UPDATE blogs
+                    SET
+                        usersWhoLiked = ?,
+                        countLikes = ?
+                    WHERE id = ?
+                `,
+                [ usersWhoLiked, countLikes, id ]
+            );
+
             res.json(createResponse({
                 status: "success",
                 message: "Likes were saved"
@@ -150,3 +168,31 @@ export function setDevice() {
 }
 
 export const setOnDocument = () => store.dispatch( setIsOnDocumentTrue() );
+
+function transformBlogs(blogs: any[]): IBlog[] {
+    return blogs.map(item => {
+        let transformedBlog = {} as { [key: string]: any };
+
+        for ( let [ key, value ] of Object.entries<any>(item) ) {
+            switch(key) {
+                case "commentsArray":
+                    transformedBlog["comments"] = value;
+                    break;
+                case "descriptionString":
+                    transformedBlog["description"] = value;
+                    break;
+                default:
+                    transformedBlog[key] = value;
+                    break;
+            }
+        }
+
+        return transformedBlog;
+    }) as IBlog[];
+};
+
+export function setCookies(res: NextApiResponse, keys: string[], values: any[], options?: CookieOptions[]) {
+    for ( let i = 0; i < keys.length; i++ ) {
+        res.setHeader("Set-Cookie", getCookieString(keys[i], values[i], options ? options[i] : undefined));
+    }
+}

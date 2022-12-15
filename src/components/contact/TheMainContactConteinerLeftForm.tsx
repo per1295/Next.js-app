@@ -26,7 +26,7 @@ export default function TheMainContactConteinerLeftForm() {
                 behavior: "smooth"
             });
         } else {
-            const response = await axios.post<Response>(encodeURI("/contact us/user"), formData);
+            const response = await axios.post<Response>(encodeURI("/contact/user"), formData);
             if ( response.statusText === "OK" ) {
                 const { message } = response.data;
                 setMessage(message);
@@ -40,9 +40,9 @@ export default function TheMainContactConteinerLeftForm() {
         form.remove();
         
         const message = messageRef.current as HTMLSpanElement;
-        message.classList.add("messageActive");
+        message.classList.add(styles.messageActive);
         setTimeout(() => {
-            message.classList.add("messageStart");
+            message.classList.add(styles.messageStart);
         }, 0);
     }
 

@@ -22,7 +22,7 @@ const initBlogs = Array.from({ length: 3 }).map(() => ({
     title: "",
     usersWhoLiked: [],
     comments: []
-}));
+})) as IBlog[];
 
 export default function TheMainBlogBody() {
     const [ isAllBlogsState, setIsAllBlogsState ] = useState(false);
